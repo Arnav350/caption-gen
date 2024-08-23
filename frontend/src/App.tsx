@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, ChangeEvent } from "react";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState<string>("");
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setFile(event.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch("http://localhost:5000/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    setCaption(data.caption);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="App">
+      <h1>Image Caption Generator</h1>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleSubmit}>Generate Caption</button>
+      {caption && <p>Caption: {caption}</p>}
+    </div>
+  );
+};
 
-export default App
+export default App;
